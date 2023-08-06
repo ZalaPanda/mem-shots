@@ -14,8 +14,15 @@ import (
 //go:embed frontend/dist/*
 var embedDist embed.FS // output of vite
 
+func DefaultErrorHandler(c *fiber.Ctx, err error) error {
+	return fiber.ErrBadRequest // https://docs.gofiber.io/guide/error-handling
+}
+
 func main() {
-	app := fiber.New()
+	config := fiber.Config{
+		ErrorHandler: DefaultErrorHandler,
+	}
+	app := fiber.New(config)
 
 	app.Use(logger.New())
 	app.Use(recover.New())
@@ -25,7 +32,7 @@ func main() {
 	}))
 	app.Get("/api", func(c *fiber.Ctx) error {
 		// panic("I'm an error")
-		return c.SendString("Hello, World!")
+		return c.Status(fiber.StatusOK).SendString("Hello, World!?")
 	})
 
 	log.Fatal(app.Listen(":9000"))
